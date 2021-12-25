@@ -7,10 +7,12 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract KikiriCoin is ERC20Capped, Ownable {
+    event Mint(address indexed owner, address indexed recipient, uint256 amount);
+
     constructor(uint256 cap) ERC20("KikiriCoin", "KIKI") ERC20Capped(cap) {}
 
-    function issueToken(uint256 amount) public onlyOwner {
-        require(amount <= 10 * 10**18, "Amount can't be higher than 10 KIKI");
-        _mint(msg.sender, amount);
+    function issueToken(address recipient, uint256 amount) public onlyOwner {
+        _mint(recipient, amount);
+        emit Mint(msg.sender, recipient, amount);
     }
 }

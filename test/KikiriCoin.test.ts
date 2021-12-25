@@ -30,19 +30,21 @@ describe('KikiriCoin', () => {
 
   describe('issueToken', () => {
     it('Should issue token to the owner', async () => {
+      const [owner] = await ethers.getSigners();
       const kiririCoin = await deployContract();
       expect(await kiririCoin.totalSupply()).to.equal(0);
 
-      const issueTokenTx = await kiririCoin.issueToken(toDecimalString(1));
+      const issueTokenTx = await kiririCoin.issueToken(owner.address, toDecimalString(1));
       await issueTokenTx.wait();
 
       expect(await kiririCoin.totalSupply()).to.equal('1000000000000000000');
     });
 
     it('Should not issue a negative amount of token', async () => {
+      const [owner] = await ethers.getSigners();
       const kiririCoin = await deployContract();
       try {
-        await kiririCoin.issueToken(`-${toDecimalString(1)}`);
+        await kiririCoin.issueToken(owner.address, `-${toDecimalString(1)}`);
       } catch (error) {
         return;
       }
@@ -51,16 +53,9 @@ describe('KikiriCoin', () => {
 
     it('Should not issue token to another account', async () => {
       const kiririCoin = await deployContract();
-      const [, ...addr] = await ethers.getSigners();
-      await expect(kiririCoin.connect(addr[0]).issueToken(toDecimalString(1))).to.be.revertedWith(
+      const [, addr1] = await ethers.getSigners();
+      await expect(kiririCoin.connect(addr1).issueToken(addr1.address, toDecimalString(1))).to.be.revertedWith(
         'Ownable: caller is not the owner'
-      );
-    });
-
-    it('Should not allow issuing more than 10 tokens', async () => {
-      const kiririCoin = await deployContract();
-      await expect(kiririCoin.issueToken(toDecimalString(11))).to.be.revertedWith(
-        "Amount can't be higher than 10 KIKI"
       );
     });
 
@@ -70,10 +65,11 @@ describe('KikiriCoin', () => {
 
       expect(await kiririCoinSmallerCap.cap()).to.equal('15000000000000000000');
 
-      const issueTokenTx = await kiririCoinSmallerCap.issueToken(toDecimalString(10));
+      const [owner] = await ethers.getSigners();
+      const issueTokenTx = await kiririCoinSmallerCap.issueToken(owner.address, toDecimalString(10));
       await issueTokenTx.wait();
 
-      await expect(kiririCoinSmallerCap.issueToken(toDecimalString(10))).to.be.revertedWith(
+      await expect(kiririCoinSmallerCap.issueToken(owner.address, toDecimalString(10))).to.be.revertedWith(
         'ERC20Capped: cap exceeded'
       );
     });
