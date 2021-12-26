@@ -62,7 +62,7 @@ npx hardhat run --network localhost scripts/deployKikiriCoin.ts
 npx hardhat total-supply --network localhost --contract [address]
 
 # Issue token as the contract owner. Here we issue 20 KIKI
-npx hardhat issue-token  --network localhost --contract [address] --amount 20000000000000000000
+npx hardhat mint  --network localhost --contract [address] --amount 20000000000000000000
 
 # Confirm the new total supply of KIKI. Expect to see "20000000000000000000 KIKI wei"
 npx hardhat total-supply --network localhost --contract [address]

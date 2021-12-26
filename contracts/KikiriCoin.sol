@@ -11,7 +11,7 @@ contract KikiriCoin is ERC20Capped, Ownable {
 
     constructor(uint256 cap) ERC20("KikiriCoin", "KIKI") ERC20Capped(cap) {}
 
-    function issueToken(address recipient, uint256 amount) public onlyOwner {
+    function mint(address recipient, uint256 amount) public onlyOwner {
         _mint(recipient, amount);
         emit Mint(msg.sender, recipient, amount);
     }
