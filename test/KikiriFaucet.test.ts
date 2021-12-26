@@ -39,6 +39,12 @@ describe('KikiriFaucet', () => {
     return kiririFaucet;
   };
 
+  const issueTokenAndFundFaucet = async (token: KikiriCoin, faucet: KikiriFaucet, amount: string) => {
+    const [owner] = await ethers.getSigners();
+    await token.issueToken(owner.address, amount);
+    await token.transfer(faucet.address, amount);
+  };
+
   it('Should start with zero tokens', async () => {
     const kikiriCoin = await deployKikiriCoinContract();
     const kikiriFaucet = await deployKikiriFaucetContract(kikiriCoin.address);
@@ -46,62 +52,141 @@ describe('KikiriFaucet', () => {
     expect(await ethers.provider.getBalance(kikiriFaucet.address)).to.be.equal('0');
   });
 
-  it('Should not be able to claim when empty', async () => {
-    const kikiriCoin = await deployKikiriCoinContract();
-    const kikiriFaucet = await deployKikiriFaucetContract(kikiriCoin.address);
+  describe('claim', () => {
+    it('Should not be able to claim when empty', async () => {
+      const kikiriCoin = await deployKikiriCoinContract();
+      const kikiriFaucet = await deployKikiriFaucetContract(kikiriCoin.address);
 
-    expect(await ethers.provider.getBalance(kikiriFaucet.address)).to.be.equal('0');
-    await expect(kikiriFaucet.claim()).to.be.revertedWith('FaucetError: Empty');
+      expect(await ethers.provider.getBalance(kikiriFaucet.address)).to.be.equal('0');
+      await expect(kikiriFaucet.claim()).to.be.revertedWith('FaucetError: Empty');
+    });
+
+    it('Should be able to claim when there are funds', async () => {
+      const [owner, addr1] = await ethers.getSigners();
+
+      const kikiriCoin = await deployKikiriCoinContract();
+      const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
+
+      expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal('0');
+
+      // Issue tokens to the owner address
+      await kikiriCoin.issueToken(owner.address, toDecimalString(100));
+      expect(await kikiriCoin.balanceOf(owner.address)).to.be.equal(toDecimalString(100));
+
+      // Transfer tokens from owner address to faucet address
+      expect(await kikiriCoin.balanceOf(addr1.address)).to.be.equal('0');
+      kikiriCoin.transfer(faucet.address, toDecimalString(50));
+      expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal(toDecimalString(50));
+
+      // Claim as another user
+      await faucet.connect(addr1).claim();
+
+      // Expect another user to have balance in their address
+      expect(await kikiriCoin.balanceOf(addr1.address)).to.be.equal(toDecimalString(10));
+
+      // Expect faucet balance to have decreased
+      expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal(toDecimalString(40));
+    });
+
+    it('Should not be able to claim funds twice in a row', async () => {
+      const [owner, addr1] = await ethers.getSigners();
+
+      const kikiriCoin = await deployKikiriCoinContract();
+      const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
+
+      expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal('0');
+
+      // Issue tokens to the owner address
+      await kikiriCoin.issueToken(owner.address, toDecimalString(100));
+
+      // Transfer tokens from owner address to faucet address
+      kikiriCoin.transfer(faucet.address, toDecimalString(50));
+
+      await faucet.connect(addr1).claim();
+
+      await expect(faucet.connect(addr1).claim()).to.be.revertedWith('FaucetError: Try again later');
+
+      // After enough time passes, it should work again
+      const rateLimitTime = await faucet.RATE_LIMIT_TIME();
+      await increaseTimeAndMine(rateLimitTime + 10);
+      await faucet.connect(addr1).claim();
+    });
+
+    it('Should trigger an event when claiming token', async () => {
+      const [, addr1] = await ethers.getSigners();
+      const kikiriCoin = await deployKikiriCoinContract();
+      const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
+
+      await issueTokenAndFundFaucet(kikiriCoin, faucet, toDecimalString(100));
+
+      await expect(faucet.connect(addr1).claim())
+        .to.emit(faucet, 'Claim')
+        .withArgs(addr1.address, toDecimalString(await faucet.DRIP_AMOUNT()));
+    });
   });
 
-  it('Should be able to claim when there are funds', async () => {
-    const [owner, addr1] = await ethers.getSigners();
+  describe('widthdrawToken', () => {
+    it('Should allow the owner to widthdraw', async () => {
+      const [owner] = await ethers.getSigners();
+      const kikiriCoin = await deployKikiriCoinContract();
+      const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
 
-    const kikiriCoin = await deployKikiriCoinContract();
-    const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
+      await issueTokenAndFundFaucet(kikiriCoin, faucet, toDecimalString(100));
 
-    expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal('0');
+      expect(await kikiriCoin.balanceOf(owner.address)).to.be.equal(0);
+      await faucet.withdrawToken(owner.address, toDecimalString(100));
+      expect(await kikiriCoin.balanceOf(owner.address)).to.be.equal(toDecimalString(100));
+    });
 
-    // Issue tokens to the owner address
-    await kikiriCoin.issueToken(owner.address, toDecimalString(100));
-    expect(await kikiriCoin.balanceOf(owner.address)).to.be.equal(toDecimalString(100));
+    it('Should allow the owner to widthdraw to another account', async () => {
+      const [, addr1] = await ethers.getSigners();
+      const kikiriCoin = await deployKikiriCoinContract();
+      const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
 
-    // Transfer tokens from owner address to faucet address
-    expect(await kikiriCoin.balanceOf(addr1.address)).to.be.equal('0');
-    kikiriCoin.transfer(faucet.address, toDecimalString(50));
-    expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal(toDecimalString(50));
+      await issueTokenAndFundFaucet(kikiriCoin, faucet, toDecimalString(100));
 
-    // Claim as another user
-    await faucet.connect(addr1).claim();
+      expect(await kikiriCoin.balanceOf(addr1.address)).to.be.equal(0);
+      await faucet.withdrawToken(addr1.address, toDecimalString(100));
+      expect(await kikiriCoin.balanceOf(addr1.address)).to.be.equal(toDecimalString(100));
+    });
 
-    // Expect another user to have balance in their address
-    expect(await kikiriCoin.balanceOf(addr1.address)).to.be.equal(toDecimalString(10));
+    it('Should NOT allow another account to widthdraw', async () => {
+      const [owner, addr1] = await ethers.getSigners();
+      const kikiriCoin = await deployKikiriCoinContract();
+      const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
 
-    // Expect faucet balance to have decreased
-    expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal(toDecimalString(40));
-  });
+      await issueTokenAndFundFaucet(kikiriCoin, faucet, toDecimalString(100));
 
-  it('Should not be able to claim funds twice in a row', async () => {
-    const [owner, addr1] = await ethers.getSigners();
+      await expect(faucet.connect(addr1).withdrawToken(addr1.address, toDecimalString(100))).to.be.revertedWith(
+        'Ownable: caller is not the owner'
+      );
+      await expect(faucet.connect(addr1).withdrawToken(owner.address, toDecimalString(100))).to.be.revertedWith(
+        'Ownable: caller is not the owner'
+      );
+    });
 
-    const kikiriCoin = await deployKikiriCoinContract();
-    const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
+    it('Should NOT allow to withdraw more than the current funds', async () => {
+      const [, addr1] = await ethers.getSigners();
+      const kikiriCoin = await deployKikiriCoinContract();
+      const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
 
-    expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal('0');
+      await issueTokenAndFundFaucet(kikiriCoin, faucet, toDecimalString(100));
 
-    // Issue tokens to the owner address
-    await kikiriCoin.issueToken(owner.address, toDecimalString(100));
+      await expect(faucet.withdrawToken(addr1.address, toDecimalString(101))).to.be.revertedWith(
+        'FaucetError: Insufficient funds'
+      );
+    });
 
-    // Transfer tokens from owner address to faucet address
-    kikiriCoin.transfer(faucet.address, toDecimalString(50));
+    it('Should trigger an event when withdrawing token', async () => {
+      const [owner, , addr2] = await ethers.getSigners();
+      const kikiriCoin = await deployKikiriCoinContract();
+      const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
 
-    await faucet.connect(addr1).claim();
+      await issueTokenAndFundFaucet(kikiriCoin, faucet, toDecimalString(100));
 
-    await expect(faucet.connect(addr1).claim()).to.be.revertedWith('FaucetError: Try again later');
-
-    // After enough time passes, it should work again
-    const rateLimitTime = await faucet.RATE_LIMIT_TIME();
-    await increaseTimeAndMine(rateLimitTime + 10);
-    await faucet.connect(addr1).claim();
+      await expect(faucet.withdrawToken(addr2.address, toDecimalString(1)))
+        .to.emit(faucet, 'Withdraw')
+        .withArgs(owner.address, addr2.address, toDecimalString(1));
+    });
   });
 });

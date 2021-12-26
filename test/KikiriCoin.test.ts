@@ -23,28 +23,28 @@ const toDecimalString = (amount: number) => {
 describe('KikiriCoin', () => {
   const deployContract = async (cap = CAP): Promise<KikiriCoin> => {
     const KikiriCoin = await ethers.getContractFactory('KikiriCoin');
-    const kiririCoin = await KikiriCoin.deploy(cap);
-    await kiririCoin.deployed();
-    return kiririCoin;
+    const kikiriCoin = await KikiriCoin.deploy(cap);
+    await kikiriCoin.deployed();
+    return kikiriCoin;
   };
 
   describe('issueToken', () => {
     it('Should issue token to the owner', async () => {
       const [owner] = await ethers.getSigners();
-      const kiririCoin = await deployContract();
-      expect(await kiririCoin.totalSupply()).to.equal(0);
+      const kikiriCoin = await deployContract();
+      expect(await kikiriCoin.totalSupply()).to.equal(0);
 
-      const issueTokenTx = await kiririCoin.issueToken(owner.address, toDecimalString(1));
+      const issueTokenTx = await kikiriCoin.issueToken(owner.address, toDecimalString(1));
       await issueTokenTx.wait();
 
-      expect(await kiririCoin.totalSupply()).to.equal('1000000000000000000');
+      expect(await kikiriCoin.totalSupply()).to.equal('1000000000000000000');
     });
 
     it('Should not issue a negative amount of token', async () => {
       const [owner] = await ethers.getSigners();
-      const kiririCoin = await deployContract();
+      const kikiriCoin = await deployContract();
       try {
-        await kiririCoin.issueToken(owner.address, `-${toDecimalString(1)}`);
+        await kikiriCoin.issueToken(owner.address, `-${toDecimalString(1)}`);
       } catch (error) {
         return;
       }
@@ -52,26 +52,35 @@ describe('KikiriCoin', () => {
     });
 
     it('Should not issue token to another account', async () => {
-      const kiririCoin = await deployContract();
+      const kikiriCoin = await deployContract();
       const [, addr1] = await ethers.getSigners();
-      await expect(kiririCoin.connect(addr1).issueToken(addr1.address, toDecimalString(1))).to.be.revertedWith(
+      await expect(kikiriCoin.connect(addr1).issueToken(addr1.address, toDecimalString(1))).to.be.revertedWith(
         'Ownable: caller is not the owner'
       );
     });
 
     it('Should not allow issuing more than the cap', async () => {
       const smallerCap = `15${produceStringOfZeros(DECIMALS)}`;
-      const kiririCoinSmallerCap = await deployContract(smallerCap);
+      const kikiriCoinSmallerCap = await deployContract(smallerCap);
 
-      expect(await kiririCoinSmallerCap.cap()).to.equal('15000000000000000000');
+      expect(await kikiriCoinSmallerCap.cap()).to.equal('15000000000000000000');
 
       const [owner] = await ethers.getSigners();
-      const issueTokenTx = await kiririCoinSmallerCap.issueToken(owner.address, toDecimalString(10));
+      const issueTokenTx = await kikiriCoinSmallerCap.issueToken(owner.address, toDecimalString(10));
       await issueTokenTx.wait();
 
-      await expect(kiririCoinSmallerCap.issueToken(owner.address, toDecimalString(10))).to.be.revertedWith(
+      await expect(kikiriCoinSmallerCap.issueToken(owner.address, toDecimalString(10))).to.be.revertedWith(
         'ERC20Capped: cap exceeded'
       );
+    });
+
+    it('Should trigger an event when issuing token', async () => {
+      const [owner] = await ethers.getSigners();
+      const kikiriCoin = await deployContract();
+
+      await expect(kikiriCoin.issueToken(owner.address, 1000000))
+        .to.emit(kikiriCoin, 'Mint')
+        .withArgs(owner.address, owner.address, 1000000);
     });
   });
 });

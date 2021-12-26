@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
     Owner of the token can distribute tokens to the faucet, that then any user can claim.
  */
 contract KikiriFaucet is Ownable {
-    event Claim(address indexed to);
+    event Claim(address indexed to, uint256 amount);
     event Withdraw(address indexed owner, address indexed recipient, uint256 amount);
 
     uint16 public constant RATE_LIMIT_TIME = 5 minutes;
@@ -31,11 +31,12 @@ contract KikiriFaucet is Ownable {
 
         nextRequestAt[msg.sender] = block.timestamp + RATE_LIMIT_TIME;
 
-        token.transfer(msg.sender, DRIP_AMOUNT * 10**token.decimals());
-        emit Claim(msg.sender);
+        uint256 amount = DRIP_AMOUNT * 10**token.decimals();
+        token.transfer(msg.sender, amount);
+        emit Claim(msg.sender, amount);
     }
 
-    function withdrawTokens(address _recipient, uint256 _amount) external onlyOwner {
+    function withdrawToken(address _recipient, uint256 _amount) external onlyOwner {
         require(token.balanceOf(address(this)) >= _amount, "FaucetError: Insufficient funds");
         token.transfer(_recipient, _amount);
         emit Withdraw(msg.sender, _recipient, _amount);
