@@ -1,6 +1,15 @@
 # KikiriCoin
 
-Kikiricoin is an ERC20 token developed to learn smart contract development and for fun.
+KikiriCoin is an ERC20 token developed to learn smart contract development and for fun.
+
+KikiriCoin and its faucet for distribution are deployed on Polygon. They can be interacted with on the following addresses:
+
+- Mumbai
+  - KikiriCoin:
+  - KikiriFaucet:
+- Mainnet
+  - KikiriCoin:
+  - KikiriFaucet:
 
 ## Commands
 
