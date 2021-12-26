@@ -1,3 +1,6 @@
+// To be called using CLI
+// Example: npx hardhat run ./scripts/deployKikiriCoin.ts --network mumbai
+
 import { ethers } from 'hardhat';
 
 async function main() {
