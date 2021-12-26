@@ -16,7 +16,7 @@ contract KikiriFaucet is Ownable {
     uint16 public constant RATE_LIMIT_TIME = 5 minutes;
     uint8 public constant DRIP_AMOUNT = 10;
 
-    IERC20Metadata public token;
+    IERC20Metadata public immutable token;
 
     // Simple rate limiting
     mapping(address => uint256) private nextRequestAt;
