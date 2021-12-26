@@ -2,26 +2,11 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
-// eslint-disable-next-line node/no-missing-import
 import { KikiriCoin } from '../typechain';
-
-const produceStringOfZeros = (length: number) =>
-  Array(length)
-    .fill('0')
-    .reduce((m, i) => `${m}${i}`, '');
-
-const DECIMALS = 18;
-const CAP = `1000000${produceStringOfZeros(DECIMALS)}`;
-
-const toDecimalString = (amount: number) => {
-  const integer = Math.floor(amount);
-  const decimals = amount - integer;
-  const decimalsString = `${decimals}`.replace('0.', '');
-  return `${integer}${decimalsString}${produceStringOfZeros(DECIMALS - decimalsString.length)}`;
-};
+import { toWei } from './util/conversion';
 
 describe('KikiriCoin', () => {
-  const deployContract = async (cap = CAP): Promise<KikiriCoin> => {
+  const deployContract = async (cap = toWei(1000000)): Promise<KikiriCoin> => {
     const KikiriCoin = await ethers.getContractFactory('KikiriCoin');
     const kikiriCoin = await KikiriCoin.deploy(cap);
     await kikiriCoin.deployed();
@@ -34,7 +19,7 @@ describe('KikiriCoin', () => {
       const kikiriCoin = await deployContract();
       expect(await kikiriCoin.totalSupply()).to.equal(0);
 
-      const issueTokenTx = await kikiriCoin.issueToken(owner.address, toDecimalString(1));
+      const issueTokenTx = await kikiriCoin.issueToken(owner.address, toWei(1));
       await issueTokenTx.wait();
 
       expect(await kikiriCoin.totalSupply()).to.equal('1000000000000000000');
@@ -44,7 +29,7 @@ describe('KikiriCoin', () => {
       const [owner] = await ethers.getSigners();
       const kikiriCoin = await deployContract();
       try {
-        await kikiriCoin.issueToken(owner.address, `-${toDecimalString(1)}`);
+        await kikiriCoin.issueToken(owner.address, `-${toWei(1)}`);
       } catch (error) {
         return;
       }
@@ -54,22 +39,22 @@ describe('KikiriCoin', () => {
     it('Should not issue token to another account', async () => {
       const kikiriCoin = await deployContract();
       const [, addr1] = await ethers.getSigners();
-      await expect(kikiriCoin.connect(addr1).issueToken(addr1.address, toDecimalString(1))).to.be.revertedWith(
+      await expect(kikiriCoin.connect(addr1).issueToken(addr1.address, toWei(1))).to.be.revertedWith(
         'Ownable: caller is not the owner'
       );
     });
 
     it('Should not allow issuing more than the cap', async () => {
-      const smallerCap = `15${produceStringOfZeros(DECIMALS)}`;
+      const smallerCap = toWei(15);
       const kikiriCoinSmallerCap = await deployContract(smallerCap);
 
       expect(await kikiriCoinSmallerCap.cap()).to.equal('15000000000000000000');
 
       const [owner] = await ethers.getSigners();
-      const issueTokenTx = await kikiriCoinSmallerCap.issueToken(owner.address, toDecimalString(10));
+      const issueTokenTx = await kikiriCoinSmallerCap.issueToken(owner.address, toWei(10));
       await issueTokenTx.wait();
 
-      await expect(kikiriCoinSmallerCap.issueToken(owner.address, toDecimalString(10))).to.be.revertedWith(
+      await expect(kikiriCoinSmallerCap.issueToken(owner.address, toWei(10))).to.be.revertedWith(
         'ERC20Capped: cap exceeded'
       );
     });

@@ -4,25 +4,10 @@ import { ethers } from 'hardhat';
 
 // eslint-disable-next-line node/no-missing-import
 import { KikiriCoin, KikiriFaucet } from '../typechain';
+import { increaseTimeAndMine } from './util/time';
+import { toWei } from './util/conversion';
 
-const increaseTimeAndMine = async (amount: number) => {
-  await ethers.provider.send('evm_increaseTime', [amount]);
-  await ethers.provider.send('evm_mine', []);
-};
-
-const produceStringOfZeros = (length: number) =>
-  Array(length)
-    .fill('0')
-    .reduce((m, i) => `${m}${i}`, '');
-const DECIMALS = 18;
 const CAP = `1000000000000000000000000`;
-
-const toDecimalString = (amount: number) => {
-  const integer = Math.floor(amount);
-  const decimals = amount - integer;
-  const decimalsString = `${decimals}`.replace('0.', '');
-  return `${integer}${decimalsString}${produceStringOfZeros(DECIMALS - decimalsString.length)}`;
-};
 
 describe('KikiriFaucet', () => {
   const deployKikiriCoinContract = async (cap = CAP): Promise<KikiriCoin> => {
@@ -70,22 +55,22 @@ describe('KikiriFaucet', () => {
       expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal('0');
 
       // Issue tokens to the owner address
-      await kikiriCoin.issueToken(owner.address, toDecimalString(100));
-      expect(await kikiriCoin.balanceOf(owner.address)).to.be.equal(toDecimalString(100));
+      await kikiriCoin.issueToken(owner.address, toWei(100));
+      expect(await kikiriCoin.balanceOf(owner.address)).to.be.equal(toWei(100));
 
       // Transfer tokens from owner address to faucet address
       expect(await kikiriCoin.balanceOf(addr1.address)).to.be.equal('0');
-      kikiriCoin.transfer(faucet.address, toDecimalString(50));
-      expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal(toDecimalString(50));
+      kikiriCoin.transfer(faucet.address, toWei(50));
+      expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal(toWei(50));
 
       // Claim as another user
       await faucet.connect(addr1).claim();
 
       // Expect another user to have balance in their address
-      expect(await kikiriCoin.balanceOf(addr1.address)).to.be.equal(toDecimalString(10));
+      expect(await kikiriCoin.balanceOf(addr1.address)).to.be.equal(toWei(10));
 
       // Expect faucet balance to have decreased
-      expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal(toDecimalString(40));
+      expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal(toWei(40));
     });
 
     it('Should not be able to claim funds twice in a row', async () => {
@@ -97,10 +82,10 @@ describe('KikiriFaucet', () => {
       expect(await kikiriCoin.balanceOf(faucet.address)).to.be.equal('0');
 
       // Issue tokens to the owner address
-      await kikiriCoin.issueToken(owner.address, toDecimalString(100));
+      await kikiriCoin.issueToken(owner.address, toWei(100));
 
       // Transfer tokens from owner address to faucet address
-      kikiriCoin.transfer(faucet.address, toDecimalString(50));
+      kikiriCoin.transfer(faucet.address, toWei(50));
 
       await faucet.connect(addr1).claim();
 
@@ -117,11 +102,11 @@ describe('KikiriFaucet', () => {
       const kikiriCoin = await deployKikiriCoinContract();
       const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
 
-      await issueTokenAndFundFaucet(kikiriCoin, faucet, toDecimalString(100));
+      await issueTokenAndFundFaucet(kikiriCoin, faucet, toWei(100));
 
       await expect(faucet.connect(addr1).claim())
         .to.emit(faucet, 'Claim')
-        .withArgs(addr1.address, toDecimalString(await faucet.DRIP_AMOUNT()));
+        .withArgs(addr1.address, toWei(await faucet.DRIP_AMOUNT()));
     });
   });
 
@@ -131,11 +116,11 @@ describe('KikiriFaucet', () => {
       const kikiriCoin = await deployKikiriCoinContract();
       const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
 
-      await issueTokenAndFundFaucet(kikiriCoin, faucet, toDecimalString(100));
+      await issueTokenAndFundFaucet(kikiriCoin, faucet, toWei(100));
 
       expect(await kikiriCoin.balanceOf(owner.address)).to.be.equal(0);
-      await faucet.withdrawToken(owner.address, toDecimalString(100));
-      expect(await kikiriCoin.balanceOf(owner.address)).to.be.equal(toDecimalString(100));
+      await faucet.withdrawToken(owner.address, toWei(100));
+      expect(await kikiriCoin.balanceOf(owner.address)).to.be.equal(toWei(100));
     });
 
     it('Should allow the owner to widthdraw to another account', async () => {
@@ -143,11 +128,11 @@ describe('KikiriFaucet', () => {
       const kikiriCoin = await deployKikiriCoinContract();
       const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
 
-      await issueTokenAndFundFaucet(kikiriCoin, faucet, toDecimalString(100));
+      await issueTokenAndFundFaucet(kikiriCoin, faucet, toWei(100));
 
       expect(await kikiriCoin.balanceOf(addr1.address)).to.be.equal(0);
-      await faucet.withdrawToken(addr1.address, toDecimalString(100));
-      expect(await kikiriCoin.balanceOf(addr1.address)).to.be.equal(toDecimalString(100));
+      await faucet.withdrawToken(addr1.address, toWei(100));
+      expect(await kikiriCoin.balanceOf(addr1.address)).to.be.equal(toWei(100));
     });
 
     it('Should NOT allow another account to widthdraw', async () => {
@@ -155,12 +140,12 @@ describe('KikiriFaucet', () => {
       const kikiriCoin = await deployKikiriCoinContract();
       const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
 
-      await issueTokenAndFundFaucet(kikiriCoin, faucet, toDecimalString(100));
+      await issueTokenAndFundFaucet(kikiriCoin, faucet, toWei(100));
 
-      await expect(faucet.connect(addr1).withdrawToken(addr1.address, toDecimalString(100))).to.be.revertedWith(
+      await expect(faucet.connect(addr1).withdrawToken(addr1.address, toWei(100))).to.be.revertedWith(
         'Ownable: caller is not the owner'
       );
-      await expect(faucet.connect(addr1).withdrawToken(owner.address, toDecimalString(100))).to.be.revertedWith(
+      await expect(faucet.connect(addr1).withdrawToken(owner.address, toWei(100))).to.be.revertedWith(
         'Ownable: caller is not the owner'
       );
     });
@@ -170,9 +155,9 @@ describe('KikiriFaucet', () => {
       const kikiriCoin = await deployKikiriCoinContract();
       const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
 
-      await issueTokenAndFundFaucet(kikiriCoin, faucet, toDecimalString(100));
+      await issueTokenAndFundFaucet(kikiriCoin, faucet, toWei(100));
 
-      await expect(faucet.withdrawToken(addr1.address, toDecimalString(101))).to.be.revertedWith(
+      await expect(faucet.withdrawToken(addr1.address, toWei(101))).to.be.revertedWith(
         'FaucetError: Insufficient funds'
       );
     });
@@ -182,11 +167,11 @@ describe('KikiriFaucet', () => {
       const kikiriCoin = await deployKikiriCoinContract();
       const faucet = await deployKikiriFaucetContract(kikiriCoin.address);
 
-      await issueTokenAndFundFaucet(kikiriCoin, faucet, toDecimalString(100));
+      await issueTokenAndFundFaucet(kikiriCoin, faucet, toWei(100));
 
-      await expect(faucet.withdrawToken(addr2.address, toDecimalString(1)))
+      await expect(faucet.withdrawToken(addr2.address, toWei(1)))
         .to.emit(faucet, 'Withdraw')
-        .withArgs(owner.address, addr2.address, toDecimalString(1));
+        .withArgs(owner.address, addr2.address, toWei(1));
     });
   });
 });
