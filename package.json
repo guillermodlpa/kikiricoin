@@ -2,7 +2,6 @@
   "name": "kikiricoin",
   "version": "1.0.0",
   "description": "Kikiricoin is an ERC20 token developed to learn smart contract development and for fun",
-  "main": "index.js",
   "scripts": {
     "test": "npx hardhat test"
   },
