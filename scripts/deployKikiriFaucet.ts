@@ -15,7 +15,7 @@ async function main() {
 
   await kikiriFaucet.deployed();
 
-  console.log('KikiriCoin deployed to:', kikiriFaucet.address);
+  console.log('KikiriCoin Faucet deployed to:', kikiriFaucet.address);
 }
 
 main().catch((error) => {
