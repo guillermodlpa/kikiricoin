@@ -25,12 +25,14 @@ task('balance-of', 'Prints the KIKI wei balance of the given address')
 
 task('mint', 'Issues KIKI token to the owner of the smart contract')
   .addParam('contract', "The contract's address")
+  .addParam('recipient', 'The recipient, if different than the owner', undefined, undefined, true)
   .addParam('amount', 'The amount of KIKI wei to issue')
   .setAction(async (taskArgs, { ethers }) => {
     const [owner] = await ethers.getSigners();
+    const recipient = taskArgs.recipient || owner.address;
 
     const KikiriCoin = await ethers.getContractFactory('KikiriCoin');
     const kikiriCoin = await KikiriCoin.attach(taskArgs.contract);
-    await kikiriCoin.mint(owner.address, taskArgs.amount);
-    console.log(`Done. Issued ${taskArgs.amount} wei to ${owner.address}`);
+    await kikiriCoin.mint(recipient, taskArgs.amount);
+    console.log(`Done. Issued ${taskArgs.amount} wei to ${recipient}`);
   });
