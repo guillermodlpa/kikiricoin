@@ -69,4 +69,10 @@ npx hardhat total-supply --network localhost --contract [address]
 
 # Confirm the KIKI balance of the owner's address. Expect to see "20000000000000000000 KIKI wei"
 npx hardhat balance-of --network localhost --contract [address] --account [account \#0 address]
+
+# Deploy KikiriCoin's Faucet. This will return the contract's address
+TOKEN_ADDRESS=0x... npx hardhat run --network localhost scripts/deployKikiriFaucet.ts
+
+# Issue token as the contract owner to the faucet. Here we issue 500 KIKI
+npx hardhat mint  --network localhost --contract [address] --recipient [faucet address] --amount 500000000000000000000
 ```
