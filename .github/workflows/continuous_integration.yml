@@ -17,7 +17,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm install
-      - name: Lint
-        run: npm run lint
-      - name: Test
-        run: npm run test
+      - run: npx hardhat compile
+      - run: npm run lint
+      - run: npm run test
