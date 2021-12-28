@@ -20,7 +20,7 @@ const config: HardhatUserConfig = {
     // },
     // Mumbai is Polygon's test network
     mumbai: {
-      url: process.env.POLYGON_MUMBAI_NETWORK_URL,
+      url: process.env.POLYGON_MUMBAI_NETWORK_URL || '',
       accounts: process.env.OWNER_ACCOUNT_PRIVATE_KEY !== undefined ? [process.env.OWNER_ACCOUNT_PRIVATE_KEY] : [],
     },
     // localhost network spinned up with npx hardhat node.
