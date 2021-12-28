@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Kikiricoin is an ERC20 token developed to learn smart contract development and for fun",
   "scripts": {
-    "test": "npx hardhat test"
+    "test": "npx hardhat test",
+    "lint": "npx eslint '**/*.{js,ts}' && npx prettier '**/*.{json,sol,md}' --check && npx solhint 'contracts/**/*.sol'"
   },
   "author": "Guillermo de la Puente (https://guillermodlpa.com)",
   "license": "MIT",

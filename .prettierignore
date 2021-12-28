@@ -4,4 +4,4 @@ cache
 coverage*
 gasReporterOutput.json
 typechain
-
+.vscode
