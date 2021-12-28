@@ -5,10 +5,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-/*
-    This faucet enables the distribution of KikiriCoin tokens.
-    Owner of the token can distribute tokens to the faucet, that then any user can claim.
- */
+/// @title Faucet to distribute KIKI tokens
+/// @author Guillermo de la Puente
+/// @notice This faucet enables any account to receive token, as long as it's funded.
 contract KikiriFaucet is Ownable {
     event Claim(address indexed to, uint256 amount);
     event Withdraw(address indexed owner, address indexed recipient, uint256 amount);
@@ -25,6 +24,7 @@ contract KikiriFaucet is Ownable {
         token = IERC20Metadata(kikiriCoinAddress);
     }
 
+    /// @notice You can use this function to claim a fixed amount of tokens. Notice that it's rate limited
     function claim() external {
         require(token.balanceOf(address(this)) > 1, "FaucetError: Empty");
         require(nextRequestAt[msg.sender] < block.timestamp, "FaucetError: Try again later");
@@ -36,9 +36,12 @@ contract KikiriFaucet is Ownable {
         emit Claim(msg.sender, amount);
     }
 
-    function withdrawToken(address _recipient, uint256 _amount) external onlyOwner {
-        require(token.balanceOf(address(this)) >= _amount, "FaucetError: Insufficient funds");
-        token.transfer(_recipient, _amount);
-        emit Withdraw(msg.sender, _recipient, _amount);
+    /// @notice Withdraw KIKI token deposited on the faucet. Only the smart contract owner can execute.
+    /// @param recipient Address to withdraw token to.
+    /// @param amount Quantity of token to withdraw
+    function withdrawToken(address recipient, uint256 amount) external onlyOwner {
+        require(token.balanceOf(address(this)) >= amount, "FaucetError: Insufficient funds");
+        token.transfer(recipient, amount);
+        emit Withdraw(msg.sender, recipient, amount);
     }
 }
