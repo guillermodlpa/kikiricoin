@@ -1,5 +1,7 @@
 # KikiriCoin
 
+![CI badge](https://github.com/guillermodlpa/kikiricoin/workflows/Continuous%20Integration/badge.svg)
+
 KikiriCoin is an ERC20 token developed to learn smart contract development and for fun.
 
 KikiriCoin's token and its faucet for token distribution are deployed on Polygon. Polygon is a scaling solution for Ethereum that provides faster and cheaper transactions on Ethereum.
