@@ -2,18 +2,11 @@
 
 KikiriCoin is an ERC20 token developed to learn smart contract development and for fun.
 
-KikiriCoin and its faucet for distribution are deployed on Polygon. They can be interacted with on the following addresses:
-
-- Mumbai
-  - KikiriCoin:
-  - KikiriFaucet:
-- Mainnet
-  - KikiriCoin:
-  - KikiriFaucet:
+KikiriCoin's token and its faucet for token distribution are deployed on Polygon. Polygon is a scaling solution for Ethereum that provides faster and cheaper transactions on Ethereum.
 
 ## Commands
 
-Developed using [Hardhat](https://hardhat.org/), using ESLint, Prettier, and TypeScript. Useful commands:
+Developed using [Hardhat](https://hardhat.org/), with ESLint, Prettier, and TypeScript. Useful commands:
 
 ```shell
 # Compile contracts
