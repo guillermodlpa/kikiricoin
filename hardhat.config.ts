@@ -18,8 +18,10 @@ const config: HardhatUserConfig = {
     //   url: process.env.ROPSTEN_URL || '',
     //   accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     // },
+    // Mumbai is Polygon's test network
     mumbai: {
-      url: '',
+      url: process.env.POLYGON_MUMBAI_NETWORK_URL,
+      accounts: process.env.OWNER_ACCOUNT_PRIVATE_KEY !== undefined ? [process.env.OWNER_ACCOUNT_PRIVATE_KEY] : [],
     },
     // localhost network spinned up with npx hardhat node.
     // Using the URL and one of the private keys given by that command
