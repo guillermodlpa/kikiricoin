@@ -90,7 +90,7 @@ npx hardhat run --network mumbai scripts/deployKikiriCoin.ts
 Take note of the smart contract address, and use it to deploy the faucet smart contract. Fee for me was 0.01074775 MATIC.
 
 ```shell
-TOKEN_ADDRESS=[address] npx hardhat run --network localhost scripts/deployKikiriFaucet.ts
+TOKEN_ADDRESS=[address] npx hardhat run --network mumbai scripts/deployKikiriFaucet.ts
 ```
 
 Use those two addresses to interact with the smart contracts using the Hardhat tasks in this repository, or to plug them as environment variables on the KikiriCoin website or another dApp.
@@ -99,4 +99,33 @@ It makes sense to start by minting some KIKI token for the faucet. Fee for me wa
 
 ```shell
 npx hardhat mint  --network mumbai --contract [token address] --recipient [faucet address] --amount 100000000000000000000
+```
+
+## Instructions for deploying to Polygon Mainnet
+
+In `.env`, define the following two variables:
+
+- `POLYGON_MAINNET_NETWORK_URL` - This will be given to you by Alchemy when you create an app on the Polygon Mumbai network ([instructions](https://docs.alchemy.com/alchemy/introduction/getting-started)).
+- `OWNER_ACCOUNT_PRIVATE_KEY` - This is the private key of the account you want to use for deploying. Note this account would become the smart contract owner when deploying, the only one with minting permission and ability to transfer ownership.
+
+Then, get tokens for that account. This is necessary since deploying the smart contract is a transaction and costs some MATIC.
+
+Then, deploy the KikiriCoin smart contract. Fee for me ws around ~0.015 MATIC.
+
+```shell
+npx hardhat run --network mainnet scripts/deployKikiriCoin.ts
+```
+
+Take note of the smart contract address, and use it to deploy the faucet smart contract.
+
+```shell
+TOKEN_ADDRESS=[address] npx hardhat run --network mainnet scripts/deployKikiriFaucet.ts
+```
+
+Use those two addresses to interact with the smart contracts using the Hardhat tasks in this repository, or to plug them as environment variables on the KikiriCoin website or another dApp.
+
+It makes sense to start by minting some KIKI token for the faucet.
+
+```shell
+npx hardhat mint  --network mainnet --contract [token address] --recipient [faucet address] --amount 100000000000000000000
 ```
