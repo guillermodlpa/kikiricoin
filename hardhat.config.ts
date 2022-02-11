@@ -14,11 +14,10 @@ dotenv.config();
 const config: HardhatUserConfig = {
   solidity: '0.8.4',
   networks: {
-    // ropsten: {
-    //   url: process.env.ROPSTEN_URL || '',
-    //   accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
-    // },
-    // Mumbai is Polygon's test network
+    mainnet: {
+      url: process.env.POLYGON_MAINNET_NETWORK_URL || '',
+      accounts: process.env.OWNER_ACCOUNT_PRIVATE_KEY !== undefined ? [process.env.OWNER_ACCOUNT_PRIVATE_KEY] : [],
+    },
     mumbai: {
       url: process.env.POLYGON_MUMBAI_NETWORK_URL || '',
       accounts: process.env.OWNER_ACCOUNT_PRIVATE_KEY !== undefined ? [process.env.OWNER_ACCOUNT_PRIVATE_KEY] : [],
