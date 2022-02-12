@@ -101,6 +101,14 @@ It makes sense to start by minting some KIKI token for the faucet. Fee for me wa
 npx hardhat mint  --network mumbai --contract [token address] --recipient [faucet address] --amount 100000000000000000000
 ```
 
+You can verify the contracts as well, so in Polygonscan it shows the source code:
+
+````shell
+# "1000000000000000000000000" is the constructor argument, passed in scripts/deployKikiriCoin.ts
+npx hardhat verify [token address] --network mumbai "1000000000000000000000000"
+
+npx hardhat verify [faucet address] --network mumbai "[token address]"
+
 ## Instructions for deploying to Polygon Mainnet
 
 In `.env`, define the following two variables:
@@ -129,3 +137,13 @@ It makes sense to start by minting some KIKI token for the faucet.
 ```shell
 npx hardhat mint  --network mainnet --contract [token address] --recipient [faucet address] --amount 100000000000000000000
 ```
+
+You can verify the contracts as well, so in Polygonscan it shows the source code:
+
+```shell
+# "1000000000000000000000000" is the constructor argument, passed in scripts/deployKikiriCoin.ts
+npx hardhat verify [token address] --network mainnet "1000000000000000000000000"
+
+npx hardhat verify [faucet address] --network mainnet "[token address]"
+```
+````
